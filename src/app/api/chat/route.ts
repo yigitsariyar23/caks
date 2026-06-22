@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI, Content } from "@google/generative-ai";
 import { NextRequest, NextResponse } from "next/server";
+import { GEMINI_MODEL, getGeminiErrorMessage } from "@/lib/gemini";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
@@ -15,7 +16,7 @@ export async function POST(request: NextRequest) {
     }
 
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.0-flash",
+      model: GEMINI_MODEL,
       systemInstruction: `You are a helpful travel assistant called "CAKS". The user is asking about ${
         cityName || "their destination"
       }. 
@@ -53,11 +54,11 @@ export async function POST(request: NextRequest) {
     const text = response.text();
 
     return NextResponse.json({ response: text });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error in chat endpoint:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
+      { error: getGeminiErrorMessage(error) },
+      { status: error?.status || 500 }
     );
   }
 } 

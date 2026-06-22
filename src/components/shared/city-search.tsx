@@ -19,15 +19,35 @@ interface CitySuggestion {
 const LATEST_SEARCHES_KEY = 'latestCitySearches';
 
 const getLatestSearches = (): CitySuggestion[] => {
-  if (typeof window === 'undefined') return [];
-  const searches = localStorage.getItem(LATEST_SEARCHES_KEY);
-  return searches ? JSON.parse(searches) : [];
+  if (
+    typeof window === 'undefined' ||
+    typeof localStorage === 'undefined' ||
+    typeof localStorage.getItem !== 'function'
+  ) {
+    return [];
+  }
+  try {
+    const searches = localStorage.getItem(LATEST_SEARCHES_KEY);
+    return searches ? JSON.parse(searches) : [];
+  } catch (error) {
+    console.error("Failed to read from localStorage:", error);
+    return [];
+  }
 };
 
 const addToLatestSearches = (city: CitySuggestion) => {
   const searches = getLatestSearches();
   const newSearches = [city, ...searches.filter(s => s.value !== city.value)].slice(0, 5);
-  localStorage.setItem(LATEST_SEARCHES_KEY, JSON.stringify(newSearches));
+  if (
+    typeof localStorage !== 'undefined' &&
+    typeof localStorage.setItem === 'function'
+  ) {
+    try {
+      localStorage.setItem(LATEST_SEARCHES_KEY, JSON.stringify(newSearches));
+    } catch (error) {
+      console.error("Failed to write to localStorage:", error);
+    }
+  }
   return newSearches;
 };
 

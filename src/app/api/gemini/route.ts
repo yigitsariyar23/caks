@@ -1,6 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextRequest, NextResponse } from "next/server";
 import { getCachedResponse, setCachedResponse } from '@/lib/cityCache';
+import { GEMINI_MODEL, getGeminiErrorMessage } from '@/lib/gemini';
 
 // Gemini API anahtarınızı ortam değişkenlerinden alın
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
@@ -43,9 +44,9 @@ export async function POST(request: NextRequest) {
       console.warn('Cache lookup failed for Gemini, proceeding with API call:', cacheError);
     }
 
-    // gemini-2.0-flash modelini kullanın. Bu model hız için optimize edilmiştir.
+    // Use a current low-cost model by default; allow overrides through env.
     console.log('Initializing Gemini model...');
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
 
     // İstemi sadeleştirilmiş ve daha doğrudan hale getirilmiş hali
     console.log('Calling Gemini API for:', locationQuery);
@@ -111,15 +112,8 @@ Example JSON structure:
       });
       
       // Return specific error based on the Gemini error
-      if (geminiError.status === 401) {
-        return NextResponse.json(
-          { error: "Gemini API authentication failed. Please check your API key." },
-          { status: 401 }
-        );
-      }
-      
       return NextResponse.json(
-        { error: `Gemini API error: ${geminiError.message}` },
+        { error: getGeminiErrorMessage(geminiError) },
         { status: geminiError.status || 500 }
       );
     }

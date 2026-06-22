@@ -21,9 +21,9 @@ export async function GET(request: NextRequest) {
       const now = new Date();
       const stats = {
         total: data?.length || 0,
-        expired: data?.filter(item => new Date(item.expires_at) < now).length || 0,
-        active: data?.filter(item => new Date(item.expires_at) >= now).length || 0,
-        byEndpoint: data?.reduce((acc, item) => {
+        expired: data?.filter((item: any) => new Date(item.expires_at) < now).length || 0,
+        active: data?.filter((item: any) => new Date(item.expires_at) >= now).length || 0,
+        byEndpoint: data?.reduce((acc: Record<string, number>, item: any) => {
           acc[item.endpoint] = (acc[item.endpoint] || 0) + 1;
           return acc;
         }, {} as Record<string, number>) || {}
